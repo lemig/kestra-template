@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "kestra": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm", "--pull", "always",
+        "-e", "KESTRA_BASE_URL",
+        "-e", "KESTRA_USERNAME",
+        "-e", "KESTRA_PASSWORD",
+        "-e", "KESTRA_MCP_DISABLED_TOOLS",
+        "ghcr.io/kestra-io/mcp-server-python:latest"
+      ],
+      "env": {
+        "KESTRA_BASE_URL": "http://host.docker.internal:8080/api/v1",
+        "KESTRA_USERNAME": "admin@kestra.io",
+        "KESTRA_PASSWORD": "Kestra2024",
+        "KESTRA_MCP_DISABLED_TOOLS": "ee"
+      }
+    }
+  }
+}

@@ -1,0 +1,79 @@
+services:
+  postgres:
+    image: postgres:15
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    environment:
+      POSTGRES_DB: kestra
+      POSTGRES_USER: kestra
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kestra}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kestra -d kestra"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  kestra:
+    image: kestra/kestra:v1.1.14
+    user: "root"
+    command: server standalone --worker-thread=128
+    volumes:
+      - ./data:/data
+      - ./storage:/app/storage
+      - ./flows:/flows
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp:/tmp
+    environment:
+      # ─── Custom environment variables ───────────────────────────────
+      # Add your project-specific env vars here.
+      # Pattern: ENV_<name> in compose → {{ envs.<name> }} in flows
+      #
+      # Example:
+      #   ENV_my_api_token: ${MY_API_TOKEN}
+      #   ENV_proxy_url: ${PROXY_URL:-}
+      # ────────────────────────────────────────────────────────────────
+
+      KESTRA_CONFIGURATION: |
+        datasources:
+          postgres:
+            url: jdbc:postgresql://postgres:5432/kestra
+            driverClassName: org.postgresql.Driver
+            username: kestra
+            password: ${POSTGRES_PASSWORD:-kestra}
+        kestra:
+          server:
+            basic-auth:
+              enabled: true
+              username: admin@kestra.io
+              password: Kestra2024
+          repository:
+            type: postgres
+          storage:
+            type: local
+            local:
+              basePath: "/app/storage"
+          queue:
+            type: postgres
+          url: http://localhost:8080/
+          tutorialFlows:
+            enabled: false
+          ai:
+            type: "gemini"
+            gemini:
+              api-key: ${GEMINI_API_KEY}
+              model-name: gemini-2.5-flash
+        micronaut:
+          io:
+            watch:
+              enabled: true
+              paths:
+                - /flows
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
