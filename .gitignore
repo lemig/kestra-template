@@ -33,7 +33,7 @@ env/
 # IDE
 .vscode/
 .idea/
-.claude/
+.claude/settings.local.json
 *.swp
 *.swo
 *~
